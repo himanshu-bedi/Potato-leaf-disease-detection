@@ -10,10 +10,11 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import { Paper, CardActionArea, CardMedia, Grid, TableContainer, Table, TableBody, TableHead, TableRow, TableCell, Button, CircularProgress } from "@material-ui/core";
 import cblogo from "./cblogo.PNG";
-import image from "./bg.png";
+import image from "./bg1.png";
 import { DropzoneArea } from 'material-ui-dropzone';
 import { common } from '@material-ui/core/colors';
 import Clear from '@material-ui/icons/Clear';
+import leaf from './leaf.jpg'
 
 
 
@@ -45,6 +46,9 @@ const useStyles = makeStyles((theme) => ({
     maxWidth: 345,
     flexGrow: 1,
   },
+  "MuiDropzoneArea-root":{
+       border:"2px solid black",
+  },
   media: {
     height: 400,
   },
@@ -64,6 +68,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundSize: 'cover',
     height: "93vh",
     marginTop: "8px",
+
   },
   imageCard: {
     margin: "auto",
@@ -72,6 +77,8 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: 'transparent',
     boxShadow: '0px 9px 70px 0px rgb(0 0 0 / 30%) !important',
     borderRadius: '15px',
+    // border:'4px solid green',
+    
   },
   imageCardEmpty: {
     height: 'auto',
@@ -141,6 +148,9 @@ const useStyles = makeStyles((theme) => ({
   },
   loader: {
     color: '#be6a77 !important',
+  },
+  mychanges:{
+    border:"2px solid red"
   }
 }));
 export const ImageUpload = () => {
@@ -151,18 +161,26 @@ export const ImageUpload = () => {
   const [image, setImage] = useState(false);
   const [isLoading, setIsloading] = useState(false);
   let confidence = 0;
+  const [button,setButton]=useState(false);
 
   const sendFile = async () => {
     if (image) {
       let formData = new FormData();
       formData.append("file", selectedFile);
+      // console.log("helllll");
       let res = await axios({
-        method: "post",
-        url: process.env.REACT_APP_API_URL,
+        method: "POST",
+        url:"http://localhost:8000/predict",
         data: formData,
       });
+      // console.log("hello");
       if (res.status === 200) {
+        // console.log("done");
         setData(res.data);
+      }
+      else
+      {
+        console.log("error");
       }
       setIsloading(false);
     }
@@ -173,6 +191,7 @@ export const ImageUpload = () => {
     setImage(false);
     setSelectedFile(null);
     setPreview(null);
+    setButton(false);
   };
 
   useEffect(() => {
@@ -188,11 +207,13 @@ export const ImageUpload = () => {
     if (!preview) {
       return;
     }
+    // console.log("running hereee");
     setIsloading(true);
     sendFile();
   }, [preview]);
 
   const onSelectFile = (files) => {
+    // console.log(files);
     if (!files || files.length === 0) {
       setSelectedFile(undefined);
       setImage(false);
@@ -204,19 +225,26 @@ export const ImageUpload = () => {
     setImage(true);
   };
 
+  const buttonclicked=()=>{
+    setButton(true);
+  }
+
   if (data) {
     confidence = (parseFloat(data.confidence) * 100).toFixed(2);
   }
+
+  
 
   return (
     <React.Fragment>
       <AppBar position="static" className={classes.appbar}>
         <Toolbar>
-          <Typography className={classes.title} variant="h6" noWrap>
-            CodeBasics: Potato Disease Classification
+          <Typography className={classes.title} variant="h6" noWrap style={{padding: "8px 657px"}}>
+            Leaf Disease Classification
           </Typography>
           <div className={classes.grow} />
-          <Avatar src={cblogo}></Avatar>
+          <Avatar src={leaf}></Avatar>
+          
         </Toolbar>
       </AppBar>
       <Container maxWidth={false} className={classes.mainContainer} disableGutters={true}>
@@ -230,23 +258,31 @@ export const ImageUpload = () => {
         >
           <Grid item xs={12}>
             <Card className={`${classes.imageCard} ${!image ? classes.imageCardEmpty : ''}`}>
-              {image && <CardActionArea>
+              {image &&<CardActionArea>
                 <CardMedia
                   className={classes.media}
                   image={preview}
                   component="image"
                   title="Contemplative Reptile"
                 />
+               
               </CardActionArea>
               }
-              {!image && <CardContent className={classes.content}>
-                <DropzoneArea
+              {!image    && <CardContent className={classes.content}>
+                <DropzoneArea 
                   acceptedFiles={['image/*']}
-                  dropzoneText={"Drag and drop an image of a potato plant leaf to process"}
+                  dropzoneText={"Drag and drop an image of a plant leaf to process"}
                   onChange={onSelectFile}
                 />
               </CardContent>}
-              {data && <CardContent className={classes.detail}>
+             
+              { image && !button && 
+              <ColorButton variant="contained" className={classes.clearButton} color="primary" component="span" size="large" onClick={buttonclicked} startIcon={<Clear fontSize="large" />} style={{marginTop:"1.2rem"}} >
+                predict
+              </ColorButton>
+
+              }
+              {button && data && <CardContent className={classes.detail}>
                 <TableContainer component={Paper} className={classes.tableContainer}>
                   <Table className={classes.table} size="small" aria-label="simple table">
                     <TableHead className={classes.tableHead}>
@@ -266,7 +302,8 @@ export const ImageUpload = () => {
                   </Table>
                 </TableContainer>
               </CardContent>}
-              {isLoading && <CardContent className={classes.detail}>
+              
+              {button && isLoading && <CardContent className={classes.detail}>
                 <CircularProgress color="secondary" className={classes.loader} />
                 <Typography className={classes.title} variant="h6" noWrap>
                   Processing
@@ -274,12 +311,12 @@ export const ImageUpload = () => {
               </CardContent>}
             </Card>
           </Grid>
-          {data &&
+          {image &&
             <Grid item className={classes.buttonGrid} >
-
-              <ColorButton variant="contained" className={classes.clearButton} color="primary" component="span" size="large" onClick={clearData} startIcon={<Clear fontSize="large" />}>
-                Clear
+               <ColorButton variant="contained" className={classes.clearButton} color="primary" component="span" size="large" onClick={clearData} startIcon={<Clear fontSize="large" />}>
+               clear
               </ColorButton>
+              
             </Grid>}
         </Grid >
       </Container >
