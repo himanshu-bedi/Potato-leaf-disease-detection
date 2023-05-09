@@ -243,7 +243,7 @@ export const ImageUpload = () => {
             Leaf Disease Classification
           </Typography>
           <div className={classes.grow} />
-          <Avatar src={leaf}></Avatar>
+          {/* <Avatar src={leaf}></Avatar> */}
           
         </Toolbar>
       </AppBar>
